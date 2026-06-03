@@ -1,50 +1,128 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+
+/* ---------------- ANIMALS DATA ---------------- */
+
+const DATA = {
+  farm: ['Cow', 'Horse', 'Sheep', 'Goat', 'Pig', 'Chicken', 'Duck', 'Turkey', 'Donkey', 'Rabbit'],
+  pets: ['Dog', 'Cat', 'Goldfish', 'Hamster', 'Guinea Pig', 'Parrot', 'Budgie', 'Turtle', 'Gecko', 'Mouse'],
+  savanna: ['Lion', 'Elephant', 'Giraffe', 'Zebra', 'Rhinoceros', 'Hippopotamus', 'Cheetah', 'Leopard', 'Hyena', 'Ostrich'],
+  rainforest: ['Gorilla', 'Chimpanzee', 'Orangutan', 'Toucan', 'Macaw', 'Sloth', 'Tree Frog', 'Anaconda', 'Jaguar', 'Tapir'],
+  ocean: ['Dolphin', 'Whale', 'Shark', 'Octopus', 'Sea Turtle', 'Starfish', 'Jellyfish', 'Seal', 'Seahorse', 'Crab'],
+  arctic: ['Polar Bear', 'Arctic Fox', 'Walrus', 'Reindeer', 'Snowy Owl', 'Beluga Whale', 'Puffin', 'Arctic Hare', 'Musk Ox', 'Narwhal'],
+  desert: ['Camel', 'Fennec Fox', 'Meerkat', 'Scorpion', 'Rattlesnake', 'Roadrunner', 'Gila Monster', 'Desert Tortoise', 'Kangaroo Rat', 'Jackrabbit'],
+  wetland: ['Alligator', 'Crocodile', 'Flamingo', 'Pelican', 'Otter', 'Beaver', 'Heron', 'Swan', 'Frog', 'Turtle'],
+  mountain: ['Mountain Goat', 'Yak', 'Snow Leopard', 'Golden Eagle', 'Alpaca', 'Llama', 'Cougar', 'Marmot', 'Bighorn Sheep', 'Red Panda'],
+  woodland: ['Squirrel', 'Raccoon', 'Deer', 'Hedgehog', 'Fox', 'Owl', 'Woodpecker', 'Skunk', 'Robin', 'Butterfly']
+};
+
+/* ---------------- MAIN APP ---------------- */
 
 export default function App() {
+  const [screen, setScreen] = useState('home');
+  const [animals, setAnimals] = useState([]);
+
+  /* HOME SCREEN */
+  if (screen === 'home') {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>🐶 Animals App</Text>
+
+        {Object.keys(DATA).map((key) => (
+          <TouchableOpacity
+            key={key}
+            style={styles.button}
+            onPress={() => {
+              setAnimals(DATA[key]);
+              setScreen('animals');
+            }}
+          >
+            <Text style={styles.buttonText}>
+              {key.toUpperCase()}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  }
+
+  /* ANIMALS SWIPE SCREEN */
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Learning App</Text>
+      <Text style={styles.title}>Swipe Animals 👉</Text>
 
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>🐶 Animals</Text>
-      </TouchableOpacity>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+      >
+        {animals.map((animal, index) => (
+          <View key={index} style={styles.card}>
+            <Text style={styles.animal}>{animal}</Text>
+          </View>
+        ))}
+      </ScrollView>
 
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>🎨 Colours</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>🔢 Numbers</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>🔤 Alphabet</Text>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => setScreen('home')}
+      >
+        <Text style={styles.backText}>⬅ Back</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
+/* ---------------- STYLES ---------------- */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    gap: 20,
+    paddingTop: 60,
+    alignItems: 'center',
+    backgroundColor: '#fff'
   },
   title: {
-    fontSize: 32,
-    textAlign: 'center',
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 20
   },
   button: {
     backgroundColor: '#4A90E2',
-    padding: 20,
+    padding: 15,
+    marginVertical: 6,
+    width: '80%',
     borderRadius: 10,
+    alignItems: 'center'
   },
   buttonText: {
     color: 'white',
-    fontSize: 24,
-    textAlign: 'center',
+    fontSize: 18
   },
+
+  card: {
+    width,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
+  animal: {
+    fontSize: 50,
+    fontWeight: 'bold'
+  },
+
+  backButton: {
+    backgroundColor: '#333',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 20,
+    marginTop: 10
+  },
+
+  backText: {
+    color: 'white',
+    fontSize: 16
+  }
 });
