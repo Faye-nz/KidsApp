@@ -1,46 +1,107 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Image,
+  Dimensions,
+} from 'react-native';
+
+import * as Speech from 'expo-speech';
+import { Audio } from 'expo-av';
 
 const { width } = Dimensions.get('window');
 
-/* ---------------- ANIMALS DATA ---------------- */
-
 const DATA = {
-  farm: ['Cow', 'Horse', 'Sheep', 'Goat', 'Pig', 'Chicken', 'Duck', 'Turkey', 'Donkey', 'Rabbit'],
-  pets: ['Dog', 'Cat', 'Goldfish', 'Hamster', 'Guinea Pig', 'Parrot', 'Budgie', 'Turtle', 'Gecko', 'Mouse'],
-  savanna: ['Lion', 'Elephant', 'Giraffe', 'Zebra', 'Rhinoceros', 'Hippopotamus', 'Cheetah', 'Leopard', 'Hyena', 'Ostrich'],
-  rainforest: ['Gorilla', 'Chimpanzee', 'Orangutan', 'Toucan', 'Macaw', 'Sloth', 'Tree Frog', 'Anaconda', 'Jaguar', 'Tapir'],
-  ocean: ['Dolphin', 'Whale', 'Shark', 'Octopus', 'Sea Turtle', 'Starfish', 'Jellyfish', 'Seal', 'Seahorse', 'Crab'],
-  arctic: ['Polar Bear', 'Arctic Fox', 'Walrus', 'Reindeer', 'Snowy Owl', 'Beluga Whale', 'Puffin', 'Arctic Hare', 'Musk Ox', 'Narwhal'],
-  desert: ['Camel', 'Fennec Fox', 'Meerkat', 'Scorpion', 'Rattlesnake', 'Roadrunner', 'Gila Monster', 'Desert Tortoise', 'Kangaroo Rat', 'Jackrabbit'],
-  wetland: ['Alligator', 'Crocodile', 'Flamingo', 'Pelican', 'Otter', 'Beaver', 'Heron', 'Swan', 'Frog', 'Turtle'],
-  mountain: ['Mountain Goat', 'Yak', 'Snow Leopard', 'Golden Eagle', 'Alpaca', 'Llama', 'Cougar', 'Marmot', 'Bighorn Sheep', 'Red Panda'],
-  woodland: ['Squirrel', 'Raccoon', 'Deer', 'Hedgehog', 'Fox', 'Owl', 'Woodpecker', 'Skunk', 'Robin', 'Butterfly']
-};
+  farm: {
+    title: 'Farm Animals',
+    animals: [
+      {
+        name: 'Cow',
+        image: require('./assets/images/farm/cow.png'),
+        sound: require('./assets/sounds/cow.mp3'),
+      },
+      {
+        name: 'Horse',
+        image: require('./assets/images/farm/horse.png'),
+        sound: require('./assets/sounds/horse.mp3'),
+      },
+      {
+        name: 'Sheep',
+        image: require('./assets/images/farm/sheep.png'),
+        sound: require('./assets/sounds/sheep.mp3'),
+      },
+    ],
+  },
 
-/* ---------------- MAIN APP ---------------- */
+  pets: {
+    title: 'Pets',
+    animals: [],
+  },
+
+  savanna: {
+    title: 'Savanna Animals',
+    animals: [],
+  },
+
+  rainforest: {
+    title: 'Rainforest Animals',
+    animals: [],
+  },
+
+  ocean: {
+    title: 'Ocean Animals',
+    animals: [],
+  },
+
+  arctic: {
+    title: 'Arctic Animals',
+    animals: [],
+  },
+
+  desert: {
+    title: 'Desert Animals',
+    animals: [],
+  },
+
+  wetland: {
+    title: 'Wetland Animals',
+    animals: [],
+  },
+
+  mountain: {
+    title: 'Mountain Animals',
+    animals: [],
+  },
+
+  woodland: {
+    title: 'Backyard & Woodland Animals',
+    animals: [],
+  },
+};
 
 export default function App() {
   const [screen, setScreen] = useState('home');
-  const [animals, setAnimals] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
-  /* HOME SCREEN */
   if (screen === 'home') {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>🐶 Animals App</Text>
+        <Text style={styles.title}>🐾 Animal Learning App</Text>
 
         {Object.keys(DATA).map((key) => (
           <TouchableOpacity
             key={key}
-            style={styles.button}
+            style={styles.menuButton}
             onPress={() => {
-              setAnimals(DATA[key]);
-              setScreen('animals');
+              setSelectedCategory(DATA[key]);
+              setScreen('category');
             }}
           >
-            <Text style={styles.buttonText}>
-              {key.toUpperCase()}
+            <Text style={styles.menuText}>
+              {DATA[key].title}
             </Text>
           </TouchableOpacity>
         ))}
@@ -48,26 +109,35 @@ export default function App() {
     );
   }
 
-  /* ANIMALS SWIPE SCREEN */
+  return (
+    <CategoryScreen
+      category={selectedCategory}
+      onBack={() => setScreen('home')}
+    />
+  );
+}
+
+function CategoryScreen({ category, onBack }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Swipe Animals 👉</Text>
+      <Text style={styles.title}>{category.title}</Text>
 
       <ScrollView
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
       >
-        {animals.map((animal, index) => (
-          <View key={index} style={styles.card}>
-            <Text style={styles.animal}>{animal}</Text>
-          </View>
+        {category.animals.map((animal, index) => (
+          <AnimalCard
+            key={index}
+            animal={animal}
+          />
         ))}
       </ScrollView>
 
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => setScreen('home')}
+        onPress={onBack}
       >
         <Text style={styles.backText}>⬅ Back</Text>
       </TouchableOpacity>
@@ -75,54 +145,122 @@ export default function App() {
   );
 }
 
-/* ---------------- STYLES ---------------- */
+function AnimalCard({ animal }) {
+  const [playNameNext, setPlayNameNext] = useState(true);
+
+  const handlePress = async () => {
+    if (playNameNext) {
+      Speech.speak(animal.name, {
+        language: 'en-US',
+        rate: 0.8,
+      });
+    } else {
+      const soundObject = new Audio.Sound();
+
+      try {
+        await soundObject.loadAsync(animal.sound);
+        await soundObject.playAsync();
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    setPlayNameNext(!playNameNext);
+  };
+
+  return (
+    <View style={styles.card}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={handlePress}
+      >
+        <Image
+          source={animal.image}
+          style={styles.image}
+        />
+      </TouchableOpacity>
+
+      <Text style={styles.animalName}>
+        {animal.name}
+      </Text>
+
+      <Text style={styles.instructions}>
+        Tap image:
+      </Text>
+
+      <Text style={styles.instructions}>
+        1st tap → Hear Name
+      </Text>
+
+      <Text style={styles.instructions}>
+        2nd tap → Hear Animal Sound
+      </Text>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
     paddingTop: 60,
     alignItems: 'center',
-    backgroundColor: '#fff'
   },
+
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20
+    marginBottom: 20,
   },
-  button: {
+
+  menuButton: {
+    width: '85%',
+    padding: 16,
+    borderRadius: 12,
     backgroundColor: '#4A90E2',
-    padding: 15,
-    marginVertical: 6,
-    width: '80%',
-    borderRadius: 10,
-    alignItems: 'center'
+    marginBottom: 10,
   },
-  buttonText: {
-    color: 'white',
-    fontSize: 18
+
+  menuText: {
+    color: '#fff',
+    fontSize: 20,
+    textAlign: 'center',
+    fontWeight: '600',
   },
 
   card: {
     width,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center'
+    padding: 20,
   },
 
-  animal: {
-    fontSize: 50,
-    fontWeight: 'bold'
+  image: {
+    width: 300,
+    height: 300,
+    borderRadius: 20,
+  },
+
+  animalName: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginTop: 20,
+  },
+
+  instructions: {
+    fontSize: 16,
+    marginTop: 4,
   },
 
   backButton: {
     backgroundColor: '#333',
     padding: 12,
     borderRadius: 10,
-    marginBottom: 20,
-    marginTop: 10
+    marginBottom: 30,
   },
 
   backText: {
     color: 'white',
-    fontSize: 16
-  }
+    fontSize: 18,
+  },
 });
