@@ -1,11 +1,26 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <Text style={styles.title}>Learning App</Text>
+
+      <TouchableOpacity style={styles.button}>
+        <Text style={styles.buttonText}>🐶 Animals</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button}>
+        <Text style={styles.buttonText}>🎨 Colours</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button}>
+        <Text style={styles.buttonText}>🔢 Numbers</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button}>
+        <Text style={styles.buttonText}>🔤 Alphabet</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -13,8 +28,23 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
+    gap: 20,
+  },
+  title: {
+    fontSize: 32,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: '#4A90E2',
+    padding: 20,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 24,
+    textAlign: 'center',
   },
 });
