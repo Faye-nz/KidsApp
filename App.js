@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,11 @@ import {
   ScrollView,
   Image,
   Dimensions,
+  BackHandler,
 } from 'react-native';
+
+import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
@@ -86,34 +90,64 @@ export default function App() {
   const [screen, setScreen] = useState('home');
   const [selectedCategory, setSelectedCategory] = useState(null);
 
+  useEffect(() => {
+    // Disable Android back button
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => true
+    );
+
+    // Hide Android navigation bar
+    async function setupFullscreen() {
+      try {
+        await NavigationBar.setBehaviorAsync('overlay-swipe');
+        await NavigationBar.setVisibilityAsync('hidden');
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    setupFullscreen();
+
+    return () => backHandler.remove();
+  }, []);
+
   if (screen === 'home') {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>🐾 Animal Learning App</Text>
+      <>
+        <StatusBar hidden />
 
-        {Object.keys(DATA).map((key) => (
-          <TouchableOpacity
-            key={key}
-            style={styles.menuButton}
-            onPress={() => {
-              setSelectedCategory(DATA[key]);
-              setScreen('category');
-            }}
-          >
-            <Text style={styles.menuText}>
-              {DATA[key].title}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <View style={styles.container}>
+          <Text style={styles.title}>🐾 Animal Learning App</Text>
+
+          {Object.keys(DATA).map((key) => (
+            <TouchableOpacity
+              key={key}
+              style={styles.menuButton}
+              onPress={() => {
+                setSelectedCategory(DATA[key]);
+                setScreen('category');
+              }}
+            >
+              <Text style={styles.menuText}>
+                {DATA[key].title}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </>
     );
   }
 
   return (
-    <CategoryScreen
-      category={selectedCategory}
-      onBack={() => setScreen('home')}
-    />
+    <>
+      <StatusBar hidden />
+
+      <CategoryScreen
+        category={selectedCategory}
+        onBack={() => setScreen('home')}
+      />
+    </>
   );
 }
 
@@ -183,18 +217,6 @@ function AnimalCard({ animal }) {
       <Text style={styles.animalName}>
         {animal.name}
       </Text>
-
-      <Text style={styles.instructions}>
-        Tap image:
-      </Text>
-
-      <Text style={styles.instructions}>
-        1st tap → Hear Name
-      </Text>
-
-      <Text style={styles.instructions}>
-        2nd tap → Hear Animal Sound
-      </Text>
     </View>
   );
 }
@@ -236,9 +258,10 @@ const styles = StyleSheet.create({
   },
 
   image: {
-    width: 300,
-    height: 300,
+    width: width * 0.8,
+    height: width * 0.8,
     borderRadius: 20,
+    resizeMode: 'contain',
   },
 
   animalName: {
