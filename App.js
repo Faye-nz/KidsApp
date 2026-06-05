@@ -12,92 +12,22 @@ import {
 
 import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
-
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
 
+import { categories } from './data/animals';
+
 const { width } = Dimensions.get('window');
 
-const DATA = {
-  farm: {
-    title: 'Farm Animals',
-    animals: [
-      {
-        name: 'Cow',
-        image: require('./assets/images/farm/cow.png'),
-        sound: require('./assets/sounds/cow.mp3'),
-      },
-      {
-        name: 'Horse',
-        image: require('./assets/images/farm/horse.png'),
-        sound: require('./assets/sounds/horse.mp3'),
-      },
-      {
-        name: 'Sheep',
-        image: require('./assets/images/farm/sheep.png'),
-        sound: require('./assets/sounds/sheep.mp3'),
-      },
-    ],
-  },
-
-  pets: {
-    title: 'Pets',
-    animals: [],
-  },
-
-  savanna: {
-    title: 'Savanna Animals',
-    animals: [],
-  },
-
-  rainforest: {
-    title: 'Rainforest Animals',
-    animals: [],
-  },
-
-  ocean: {
-    title: 'Ocean Animals',
-    animals: [],
-  },
-
-  arctic: {
-    title: 'Arctic Animals',
-    animals: [],
-  },
-
-  desert: {
-    title: 'Desert Animals',
-    animals: [],
-  },
-
-  wetland: {
-    title: 'Wetland Animals',
-    animals: [],
-  },
-
-  mountain: {
-    title: 'Mountain Animals',
-    animals: [],
-  },
-
-  woodland: {
-    title: 'Backyard & Woodland Animals',
-    animals: [],
-  },
-};
-
 export default function App() {
-  const [screen, setScreen] = useState('home');
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
-    // Disable Android back button
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => true
     );
 
-    // Hide Android navigation bar
     async function setupFullscreen() {
       try {
         await NavigationBar.setBehaviorAsync('overlay-swipe');
@@ -112,58 +42,61 @@ export default function App() {
     return () => backHandler.remove();
   }, []);
 
-  if (screen === 'home') {
-    return (
-      <>
-        <StatusBar hidden />
-
-        <View style={styles.container}>
-          <Text style={styles.title}>🐾 Animal Learning App</Text>
-
-          {Object.keys(DATA).map((key) => (
-            <TouchableOpacity
-              key={key}
-              style={styles.menuButton}
-              onPress={() => {
-                setSelectedCategory(DATA[key]);
-                setScreen('category');
-              }}
-            >
-              <Text style={styles.menuText}>
-                {DATA[key].title}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </>
-    );
-  }
-
   return (
     <>
       <StatusBar hidden />
 
-      <CategoryScreen
-        category={selectedCategory}
-        onBack={() => setScreen('home')}
-      />
+      {selectedCategory ? (
+        <CategoryScreen
+          category={selectedCategory}
+          onBack={() => setSelectedCategory(null)}
+        />
+      ) : (
+        <HomeScreen
+          onSelectCategory={setSelectedCategory}
+        />
+      )}
     </>
+  );
+}
+
+function HomeScreen({ onSelectCategory }) {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.appTitle}>
+        🐾 Animal Learning
+      </Text>
+
+      
+
+      {categories.map((category) => (
+        <TouchableOpacity
+          key={category.id}
+          style={styles.menuButton}
+          onPress={() => onSelectCategory(category)}
+        >
+          <Text style={styles.menuText}>
+            {category.title}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
   );
 }
 
 function CategoryScreen({ category, onBack }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{category.title}</Text>
+      
 
       <ScrollView
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
       >
-        {category.animals.map((animal, index) => (
+        {category.animals.map((animal) => (
           <AnimalCard
-            key={index}
+            key={animal.name}
             animal={animal}
           />
         ))}
@@ -173,7 +106,9 @@ function CategoryScreen({ category, onBack }) {
         style={styles.backButton}
         onPress={onBack}
       >
-        <Text style={styles.backText}>⬅ Back</Text>
+        <Text style={styles.backText}>
+          ⬅ Back
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -215,7 +150,10 @@ function AnimalCard({ animal }) {
       </TouchableOpacity>
 
       <Text style={styles.animalName}>
-        {animal.name}
+        <Text style={styles.firstLetter}>
+          {animal.name.charAt(0)}
+        </Text>
+        {animal.name.slice(1)}
       </Text>
     </View>
   );
@@ -224,66 +162,90 @@ function AnimalCard({ animal }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 60,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
+    paddingTop: 60,
   },
 
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  appTitle: {
+    fontSize: 36,
+    fontWeight: '900',
+    marginBottom: 10,
+    color: '#2D2A6E',
+  },
+
+  subtitle: {
+    fontSize: 18,
+    color: '#6B6B9A',
+    marginBottom: 25,
+  },
+
+  categoryTitle: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#2D2A6E',
     marginBottom: 20,
   },
 
   menuButton: {
-    width: '85%',
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#4A90E2',
-    marginBottom: 10,
+    width: '88%',
+    paddingVertical: 22,
+    borderRadius: 26,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 16,
+
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
 
   menuText: {
-    color: '#fff',
-    fontSize: 20,
     textAlign: 'center',
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#3C3A7A',
   },
 
   card: {
     width,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
   },
 
   image: {
-    width: width * 0.8,
-    height: width * 0.8,
-    borderRadius: 20,
+    width: width * 0.78,
+    height: width * 0.78,
     resizeMode: 'contain',
+    borderRadius: 30,
   },
 
   animalName: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginTop: 20,
+    fontSize: 150,
+    fontWeight: '900',
+    marginTop: 15,
+    color: '#2B2B2B',
+    letterSpacing: 1,
   },
 
-  instructions: {
-    fontSize: 16,
-    marginTop: 4,
+  firstLetter: {
+    fontSize: 200,
+    color: '#02639D',
+    fontWeight: '900',
   },
 
   backButton: {
-    backgroundColor: '#333',
-    padding: 12,
-    borderRadius: 10,
+    backgroundColor: '#FFF1F1',
+    paddingHorizontal: 26,
+    paddingVertical: 14,
+    borderRadius: 30,
     marginBottom: 30,
   },
 
   backText: {
-    color: 'white',
+    color: 'grey',
+    fontWeight: '800',
     fontSize: 18,
   },
 });
